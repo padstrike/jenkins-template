@@ -1,6 +1,5 @@
 pipeline {
-    
-    agent any 
+    agent any
 
     stages {
         stage('Checkout') {
@@ -20,18 +19,18 @@ pipeline {
         stage('Install') {
             steps {
                 // Install dependencies
-                echo "npm install"
+                sh 'npm install'
             }
         }
 
         stage('Test') {
             steps {
                 // Run tests
-                echo "npm test"
+                sh 'npm test'
             }
         }
 
-        stage('Build') {
+        stage('Copy-env') {
             steps {
                 script {
                     // Check if the .env file already exists in the target directory before copying
@@ -45,9 +44,25 @@ pipeline {
                 }
             }
         }
+
+        stage('Docker Build and Push') {
+            steps {
+                script {
+                    // Build Docker image
+                    def imageName = 'tuer12033/jenkins-production'
+                    def imageTag = 'vertion'
+                    sh "docker build -t ${imageName}:${imageTag} ."
+
+                    // Push to Docker Hub
+                    withCredentials([usernamePassword(credentialsId: 'admin', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
+                        sh "docker login -u $DOCKER_HUB_USERNAME --password-stdin"
+                        sh "docker push ${imageName}:${imageTag}"
+                    }
+                }
+            }
+        }
     }
 }
-
 
 // Helper method for checking out a Git repository
 void checkoutRepo(String repoUrl, String branchName) {
@@ -58,7 +73,7 @@ void checkoutRepo(String repoUrl, String branchName) {
         extensions: [],
         submoduleCfg: [],
         userRemoteConfigs: [[
-            // credentialsId: 'git-credentials-id',  // Uncomment and replace with the actual credentials ID if needed
+            // credentialsId: 'admin',  // Uncomment and replace with the actual credentials ID if needed
             url: repoUrl
         ]]
     ])
