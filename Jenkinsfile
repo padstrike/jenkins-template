@@ -58,6 +58,23 @@ pipeline {
                 }
             }
         }
+
+        stage('Update Application Container') {
+            steps {
+                script {
+                    sh '''
+                        echo "Pulling Image..."
+                        docker pull $DOCKER_CREDENTIALS_USR/$imageName:$imageTag
+                        echo "Stopping Existing Container..."
+                        docker stop jenkins-test-container || true
+                        echo "Removing Existing Container..."
+                        docker rm jenkins-test-container || true
+                        echo "Running New Container..."
+                        docker run -d -p 3000:3000 --name jenkins-test-container $DOCKER_CREDENTIALS_USR/$imageName:$imageTag
+                    '''
+                }
+            }
+        }
     }
 }
 
