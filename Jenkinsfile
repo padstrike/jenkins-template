@@ -1,6 +1,10 @@
 pipeline {
     agent any
 
+    environment {
+        DOCKER_CREDENTIALS = credentials('admin')
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -15,7 +19,7 @@ pipeline {
                 }
             }
         }
-        
+
         stage('Copy-env') {
             steps {
                 script {
@@ -34,20 +38,22 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 script {
+
+                    script {
                     // Build Docker image
-                    def imageName = 'tuer12033/jenkins-production'
+                    def imageName = 'production'
                     def imageTag = 'vertion'
                     sh "docker build -t ${imageName}:${imageTag} ."
 
                     // Push to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'admin', usernameVariable: 'DOCKER_HUB_USERNAME')]) {
-                        sh "docker login -u $DOCKER_HUB_USERNAME --password-stdin"
-                        sh "docker push ${imageName}:${imageTag}"
-                    }
+
+                    sh "docker login -u $DOCKER_HUB_USERNAME --password-stdin"
+                    sh "docker push $DOCKER_CREDENTIALS_USR/${imageName}:${imageTag}"
                 }
             }
         }
     }
+}
 }
 
 // Helper method for checking out a Git repository
