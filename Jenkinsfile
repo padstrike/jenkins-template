@@ -5,8 +5,12 @@ pipeline {
     stages {
         stage('Checkout') {
             steps {
-                // Get the code from the version control system
-                checkout scm 
+                script {
+                    checkoutRepo('https://github.com/padstrike/web-react.git', 'main')
+                    dir('env-repo') {
+                        checkoutRepo('https://github.com/padstrike/env-template.git', 'main')
+                    }
+                }
             }
         }
 
@@ -31,4 +35,20 @@ pipeline {
             }
         }
     }
+}
+
+
+// Helper method for checking out a Git repository
+void checkoutRepo(String repoUrl, String branchName) {
+    checkout([
+        $class: 'GitSCM',
+        branches: [[name: branchName]],
+        doGenerateSubmoduleConfigurations: false,
+        extensions: [],
+        submoduleCfg: [],
+        userRemoteConfigs: [[
+            // credentialsId: 'git-credentials-id',  // Uncomment and replace with the actual credentials ID if needed
+            url: repoUrl
+        ]]
+    ])
 }
