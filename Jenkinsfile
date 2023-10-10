@@ -33,9 +33,10 @@ pipeline {
 
         stage('Docker Build and Push') {
             steps {
+
                 script {
                     // Build Docker image
-                    def imageName = 'tuer12033/production'
+                    def imageName = 'production'
                     def imageTag = 'version'
                     sh "docker build -t ${imageName}:${imageTag} ."
 
@@ -43,10 +44,16 @@ pipeline {
                     sh "docker images"
 
                     // Push to Docker Hub
-                    withCredentials([usernamePassword(credentialsId: 'admin', usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
-                        sh "echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
-                        sh "docker push ${imageName}:${imageTag}"
-                    }
+                    sh '''
+                            echo "Building Image..."
+                            docker build -t $imageName:$imageTag .
+                            echo "Tagging Image..."
+                            docker tag  $imageName:$imageTag $DOCKER_CREDENTIALS_USR/ $imageName:$imageTag
+                            echo "Logging in to Docker Hub..."
+                            echo "$DOCKER_CREDENTIALS_PSW" | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin
+                            echo "Pushing Image..."
+                            docker push $DOCKER_CREDENTIALS_USR/ $imageName:$imageTag
+                        '''
                 }
             }
         }
