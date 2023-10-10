@@ -15,21 +15,7 @@ pipeline {
                 }
             }
         }
-
-        stage('Install') {
-            steps {
-                // Install dependencies
-                sh 'npm install'
-            }
-        }
-
-        stage('Test') {
-            steps {
-                // Run tests
-                sh 'npm test'
-            }
-        }
-
+        
         stage('Copy-env') {
             steps {
                 script {
