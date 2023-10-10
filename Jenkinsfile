@@ -1,6 +1,11 @@
 pipeline {
     agent any
 
+    environment {
+        imageName = 'production'
+        imageTag = 'version'
+    }
+
     stages {
         stage('Checkout') {
             steps {
@@ -33,11 +38,8 @@ pipeline {
 
         stage('Docker Build and Push') {
             steps {
-
                 script {
                     // Build Docker image
-                    def imageName = 'production'
-                    def imageTag = 'version'
                     sh "docker build -t ${imageName}:${imageTag} ."
 
                     // List all local Docker images
@@ -45,15 +47,15 @@ pipeline {
 
                     // Push to Docker Hub
                     sh '''
-                            echo "Building Image..."
-                            docker build -t $imageName:$imageTag .
-                            echo "Tagging Image..."
-                            docker tag  $imageName:$imageTag $DOCKER_CREDENTIALS_USR/ $imageName:$imageTag
-                            echo "Logging in to Docker Hub..."
-                            echo "$DOCKER_CREDENTIALS_PSW" | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin
-                            echo "Pushing Image..."
-                            docker push $DOCKER_CREDENTIALS_USR/ $imageName:$imageTag
-                        '''
+                        echo "Building Image..."
+                        docker build -t $imageName:$imageTag .
+                        echo "Tagging Image..."
+                        docker tag $imageName:$imageTag $DOCKER_CREDENTIALS_USR/$imageName:$imageTag
+                        echo "Logging in to Docker Hub..."
+                        echo "$DOCKER_CREDENTIALS_PSW" | docker login -u $DOCKER_CREDENTIALS_USR --password-stdin
+                        echo "Pushing Image..."
+                        docker push $DOCKER_CREDENTIALS_USR/$imageName:$imageTag
+                    '''
                 }
             }
         }
