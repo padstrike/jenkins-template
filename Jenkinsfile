@@ -42,9 +42,6 @@ pipeline {
                     // Build Docker image
                     sh "docker build -t ${imageName}:${imageTag} ."
 
-                    // List all local Docker images
-                    sh "docker images"
-
                     // Push to Docker Hub
                     sh '''
                         echo "Building Image..."
