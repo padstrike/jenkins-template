@@ -1,10 +1,6 @@
 pipeline {
     agent any
 
-    environment {
-        DOCKER_CREDENTIALS = credentials('admin')
-    }
-
     stages {
         stage('Checkout') {
             steps {
@@ -38,25 +34,23 @@ pipeline {
         stage('Docker Build and Push') {
             steps {
                 script {
-
-                    script {
                     // Build Docker image
-                    def imageName = 'production'
-                    def imageTag = 'vertion'
+                    def imageName = 'tuer12033/production'
+                    def imageTag = 'version'
                     sh "docker build -t ${imageName}:${imageTag} ."
 
+                    // List all local Docker images
+                    sh "docker images"
+
                     // Push to Docker Hub
-
-                    withCredentials([usernamePassword(credentialsId: 'admin', usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
-                    sh "echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
-                    sh "docker push $DOCKER_CREDENTIALS_USR/${imageName}:${imageTag}"
-}
-
+                    withCredentials([usernamePassword(credentialsId: 'dockerHubCredentials', usernameVariable: 'DOCKER_HUB_USERNAME', passwordVariable: 'DOCKER_HUB_PASSWORD')]) {
+                        sh "echo $DOCKER_HUB_PASSWORD | docker login -u $DOCKER_HUB_USERNAME --password-stdin"
+                        sh "docker push ${imageName}:${imageTag}"
+                    }
                 }
             }
         }
     }
-}
 }
 
 // Helper method for checking out a Git repository
@@ -68,7 +62,6 @@ void checkoutRepo(String repoUrl, String branchName) {
         extensions: [],
         submoduleCfg: [],
         userRemoteConfigs: [[
-            // credentialsId: 'admin',  // Uncomment and replace with the actual credentials ID if needed
             url: repoUrl
         ]]
     ])
