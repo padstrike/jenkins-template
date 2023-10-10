@@ -2,6 +2,7 @@ pipeline {
     agent any
 
     environment {
+        DOCKER_CREDENTIALS = credentials('admin') 
         imageName = 'production'
         imageTag = 'version'
     }
@@ -42,10 +43,11 @@ pipeline {
                     // Build Docker image
                     sh "docker build -t ${imageName}:${imageTag} ."
 
+                    // List all local Docker images
+                    sh "docker images"
+
                     // Push to Docker Hub
                     sh '''
-                        echo "Building Image..."
-                        docker build -t $imageName:$imageTag .
                         echo "Tagging Image..."
                         docker tag $imageName:$imageTag $DOCKER_CREDENTIALS_USR/$imageName:$imageTag
                         echo "Logging in to Docker Hub..."
