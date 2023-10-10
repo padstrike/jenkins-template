@@ -6,8 +6,11 @@ pipeline {
         stage('Checkout') {
             steps {
                 script {
+                    // Check out the first repository
                     checkoutRepo('https://github.com/padstrike/web-react.git', 'main')
-                    dir('env-repo') {
+
+                    // Check out the second repository to a different directory
+                    dir('env-template') {
                         checkoutRepo('https://github.com/padstrike/env-template.git', 'main')
                     }
                 }
@@ -30,8 +33,16 @@ pipeline {
 
         stage('Build') {
             steps {
-                // Build the project
-                echo "npm run build"
+                script {
+                    // Check if the .env file already exists in the target directory before copying
+                    if (!fileExists('.env')) {
+                        dir('env-template') {
+                            sh 'cp .env ../'  // Copy .env file to the first repository's directory
+                        }
+                    } else {
+                        echo 'The .env file already exists in the target directory.'
+                    }
+                }
             }
         }
     }
