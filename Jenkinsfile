@@ -1,3 +1,15 @@
+def notify_LINE(status, token) {
+    // def jobname = env.JOB_NAME
+    // def buildno = env.BUILD_NUMBER
+    def timestamp = new Date().format("yyyy-MM-dd : ['T'HH:mm:ss.SSSXXX]")
+    // def joburl = env.JOB_URL
+    
+    def url = 'https://notify-api.line.me/api/notify'
+    def message = "Hi ${timestamp}"
+    sh "curl ${url} -H 'Authorization: Bearer ${token}' -F 'message= \n ${message}'"
+}
+
+
 pipeline {
     agent any
 
@@ -24,15 +36,10 @@ pipeline {
 
         stage('Copy-env') {
             steps {
-                script {
-                    // Check if the .env file already exists in the target directory before copying
-                    if (!fileExists('.env')) {
-                        dir('env-template') {
-                            sh 'cp .env ../'  // Copy .env file to the first repository's directory
-                        }
-                    } else {
-                        echo 'The .env file already exists in the target directory.'
-                    }
+                script {              
+                    dir('env-template') {
+                        sh 'cp .env ../'  // Copy .env file to the first repository's directory
+                    }               
                 }
             }
         }
@@ -59,7 +66,7 @@ pipeline {
             }
         }
 
-        stage('Update Application Container') {
+        stage('Deploy') {
             steps {
                 script {
                     sh '''
@@ -76,6 +83,18 @@ pipeline {
             }
         }
     }
+
+    post {
+    success {
+      notify_LINE("Success","qF5XKt7ffKCmqLyAs5Pk7M1fPRhSgqivj4Aji2D0mS6")
+    }
+    failure {
+     
+      notify_LINE("Failed" ,"qF5XKt7ffKCmqLyAs5Pk7M1fPRhSgqivj4Aji2D0mS6")
+    }
+   
+  } // End of LINE notificaion
+
 }
 
 // Helper method for checking out a Git repository
