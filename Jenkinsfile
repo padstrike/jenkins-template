@@ -66,6 +66,17 @@ pipeline {
             }
         }
 
+        stage('Approval') {
+            steps {
+                script {
+                    def userInput = input(id: 'confirm', message: 'Approve Deployment?', parameters: [ [$class: 'BooleanParameterDefinition', defaultValue: false, description: '', name: 'Please confirm you approve the deployment']])
+                    if(!userInput) {
+                        error('Deployment was not approved, exiting...')
+                    }
+                }
+            }
+        }
+
         stage('Deploy') {
             steps {
                 script {
